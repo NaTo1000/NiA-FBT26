@@ -1,0 +1,27 @@
+{
+  "name": "nia-fbt26",
+  "version": "1.0.0",
+  "description": "Advanced Flipper Zero Development Suite",
+  "main": "src/main.py",
+  "scripts": {
+    "start": "python3 src/main.py",
+    "build": "pyinstaller --onefile --windowed --name NiA-FBT26 src/main.py",
+    "test": "pytest tests/",
+    "lint": "flake8 src/",
+    "format": "black src/"
+  },
+  "keywords": [
+    "flipper-zero",
+    "fap",
+    "firmware",
+    "development",
+    "arduino",
+    "esp32"
+  ],
+  "author": "NaTo1000",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/NaTo1000/NiA-FBT26"
+  }
+}
