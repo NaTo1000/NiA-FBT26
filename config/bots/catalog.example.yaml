@@ -1,0 +1,467 @@
+# Bot Specialization Catalog — Example Configuration
+#
+# File:    config/bots/catalog.example.yaml
+# Version: 1.0.0
+# Status:  Example / Scaffold
+#
+# This file defines the bot specialization catalog format.
+# It supports up to 10 000 bot entries using:
+#   1. Explicit bot definitions (for unique/named bots)
+#   2. Template-based bulk generation with shard strategy
+#
+# In production, generate the full catalog from templates using:
+#   scripts/generate_bot_catalog.py --template catalog.example.yaml \
+#                                   --output catalog.yaml
+#
+# Schema reference: docs/architecture/super_orchestrator.md
+# Sharding details: docs/scalability/sharding_and_queueing.md
+
+---
+
+##############################################################################
+# Catalog Metadata
+##############################################################################
+catalog:
+  version: "1.0.0"
+  total_bots: 10000
+  shard_count: 5
+  bots_per_shard: 2000
+  generated_at: null               # set by generation tooling
+  generator: "scripts/generate_bot_catalog.py"
+
+##############################################################################
+# Bot Specialization Domains
+# Each domain maps to a class of work performed by bots.
+# Domains are assigned to shards; bots within a shard may span domains
+# but a domain's primary capacity lives in one shard.
+##############################################################################
+domains:
+  - id: flipper_fap_builder
+    display_name: "Flipper FAP Builder"
+    description: "Compile and validate Flipper Zero .fap application files"
+    primary_shard: 0
+    capabilities: [compile, lint, package, sign]
+
+  - id: firmware_assembler
+    display_name: "Firmware Assembler"
+    description: "Assemble custom Flipper Zero firmware from component manifests"
+    primary_shard: 0
+    capabilities: [assemble, link, verify, flash_image_gen]
+
+  - id: github_crawler
+    display_name: "GitHub Repository Crawler"
+    description: "Search, index, and download Flipper-related GitHub repositories"
+    primary_shard: 1
+    capabilities: [search, clone, index, metadata_extract]
+
+  - id: file_handler
+    display_name: "File Format Handler"
+    description: "Parse, convert, and validate FAP/DFU/archive files"
+    primary_shard: 1
+    capabilities: [parse_fap, parse_dfu, extract_archive, validate_manifest]
+
+  - id: arduino_compiler
+    display_name: "Arduino / ESP32 Compiler"
+    description: "Compile Arduino sketches and ESP32 firmware"
+    primary_shard: 2
+    capabilities: [compile_sketch, flash_esp32, manage_libraries, board_config]
+
+  - id: normalizer
+    display_name: "Data Normalizer"
+    description: "Normalize and clean ingested records through the transform pipeline"
+    primary_shard: 2
+    capabilities: [charset_convert, flatten_json, timestamp_norm, pii_mask]
+
+  - id: validator
+    display_name: "Record Validator"
+    description: "Apply schema, business-rule, and signature validation"
+    primary_shard: 3
+    capabilities: [schema_check, business_rules, signature_verify, quarantine_tag]
+
+  - id: inference_worker
+    display_name: "Inference Worker"
+    description: "Run ML/AI inference tasks (classification, NER, embeddings)"
+    primary_shard: 3
+    capabilities: [feature_extract, embedding_gen, classify, anomaly_detect]
+
+  - id: optimizer
+    display_name: "Output Optimizer"
+    description: "Compress, cache, batch, and dispatch final pipeline output"
+    primary_shard: 4
+    capabilities: [compress, cache, batch_pack, rate_limit, dispatch]
+
+  - id: monitor
+    display_name: "System Monitor"
+    description: "Collect and emit health, metrics, and alerting signals"
+    primary_shard: 4
+    capabilities: [health_check, metrics_emit, alert_dispatch, log_aggregate]
+
+##############################################################################
+# Bot Templates
+# Define parameterised templates for bulk bot generation.
+# The generator script expands each template into individual bot entries.
+##############################################################################
+bot_templates:
+
+  - template_id: tpl_fap_builder
+    domain: flipper_fap_builder
+    shard_id: 0
+    bot_id_range: [0, 399]          # 400 bots for this specialization in shard 0
+    display_name_pattern: "fap-builder-{bot_id:04d}"
+    description: "FAP compiler bot #{bot_id}"
+    resource_profile:
+      cpu_millicores: 500
+      memory_mb: 512
+      gpu: false
+    lifecycle:
+      heartbeat_interval_ms: 10000
+      task_timeout_ms: 120000
+      idle_timeout_ms: 300000
+    capabilities: [compile, lint, package]
+    config:
+      fbt_path: "/opt/fbt"
+      build_parallelism: 2
+      output_path: "/data/output/fap"
+
+  - template_id: tpl_firmware_assembler
+    domain: firmware_assembler
+    shard_id: 0
+    bot_id_range: [400, 799]        # 400 bots
+    display_name_pattern: "firmware-assembler-{bot_id:04d}"
+    description: "Firmware assembly bot #{bot_id}"
+    resource_profile:
+      cpu_millicores: 1000
+      memory_mb: 1024
+      gpu: false
+    lifecycle:
+      heartbeat_interval_ms: 10000
+      task_timeout_ms: 300000
+      idle_timeout_ms: 600000
+    capabilities: [assemble, link, verify]
+    config:
+      toolchain_path: "/opt/arm-gcc"
+      output_path: "/data/output/firmware"
+
+  - template_id: tpl_github_crawler
+    domain: github_crawler
+    shard_id: 1
+    bot_id_range: [2000, 2799]      # 800 bots (high crawl volume)
+    display_name_pattern: "github-crawler-{bot_id:04d}"
+    description: "GitHub crawler bot #{bot_id}"
+    resource_profile:
+      cpu_millicores: 250
+      memory_mb: 256
+      gpu: false
+    lifecycle:
+      heartbeat_interval_ms: 10000
+      task_timeout_ms: 60000
+      idle_timeout_ms: 120000
+    capabilities: [search, clone, index]
+    config:
+      github_token_env: GITHUB_TOKEN
+      rate_limit_rps: 10
+      clone_depth: 1
+
+  - template_id: tpl_file_handler
+    domain: file_handler
+    shard_id: 1
+    bot_id_range: [2800, 3199]      # 400 bots
+    display_name_pattern: "file-handler-{bot_id:04d}"
+    description: "File format handler bot #{bot_id}"
+    resource_profile:
+      cpu_millicores: 250
+      memory_mb: 256
+      gpu: false
+    lifecycle:
+      heartbeat_interval_ms: 10000
+      task_timeout_ms: 30000
+      idle_timeout_ms: 120000
+    capabilities: [parse_fap, parse_dfu, extract_archive]
+
+  - template_id: tpl_arduino_compiler
+    domain: arduino_compiler
+    shard_id: 2
+    bot_id_range: [4000, 4499]      # 500 bots
+    display_name_pattern: "arduino-compiler-{bot_id:04d}"
+    description: "Arduino/ESP32 compiler bot #{bot_id}"
+    resource_profile:
+      cpu_millicores: 750
+      memory_mb: 768
+      gpu: false
+    lifecycle:
+      heartbeat_interval_ms: 10000
+      task_timeout_ms: 180000
+      idle_timeout_ms: 300000
+    capabilities: [compile_sketch, flash_esp32, manage_libraries]
+    config:
+      arduino_cli_path: "/opt/arduino-cli"
+      esp32_tools_path: "/opt/platformio"
+
+  - template_id: tpl_normalizer
+    domain: normalizer
+    shard_id: 2
+    bot_id_range: [4500, 5999]      # 1500 bots (high-volume pipeline stage)
+    display_name_pattern: "normalizer-{bot_id:04d}"
+    description: "Data normalizer bot #{bot_id}"
+    resource_profile:
+      cpu_millicores: 250
+      memory_mb: 256
+      gpu: false
+    lifecycle:
+      heartbeat_interval_ms: 5000
+      task_timeout_ms: 5000
+      idle_timeout_ms: 60000
+    capabilities: [charset_convert, flatten_json, timestamp_norm, pii_mask]
+    config:
+      pii_salt_env: PII_SALT
+      alias_map_path: "config/normalize/field_aliases.json"
+
+  - template_id: tpl_validator
+    domain: validator
+    shard_id: 3
+    bot_id_range: [6000, 7499]      # 1500 bots
+    display_name_pattern: "validator-{bot_id:04d}"
+    description: "Record validator bot #{bot_id}"
+    resource_profile:
+      cpu_millicores: 250
+      memory_mb: 256
+      gpu: false
+    lifecycle:
+      heartbeat_interval_ms: 5000
+      task_timeout_ms: 5000
+      idle_timeout_ms: 60000
+    capabilities: [schema_check, business_rules, signature_verify]
+    config:
+      schema_registry_url: "http://schema-registry.internal:8081"
+      rules_path: "config/validate/business_rules.yaml"
+      signature_secret_env: SIGNATURE_SECRET
+
+  - template_id: tpl_inference_worker
+    domain: inference_worker
+    shard_id: 3
+    bot_id_range: [7500, 7999]      # 500 bots (GPU-bound, fewer needed)
+    display_name_pattern: "inference-worker-{bot_id:04d}"
+    description: "ML inference bot #{bot_id}"
+    resource_profile:
+      cpu_millicores: 1000
+      memory_mb: 2048
+      gpu: true
+      gpu_memory_mb: 4096
+    lifecycle:
+      heartbeat_interval_ms: 10000
+      task_timeout_ms: 10000
+      idle_timeout_ms: 120000
+    capabilities: [feature_extract, embedding_gen, classify, anomaly_detect]
+    config:
+      model_registry_url: "http://model-registry.internal:8080"
+      batch_size: 32
+      device: "cuda"                 # cuda | cpu
+
+  - template_id: tpl_optimizer
+    domain: optimizer
+    shard_id: 4
+    bot_id_range: [8000, 9499]      # 1500 bots
+    display_name_pattern: "optimizer-{bot_id:04d}"
+    description: "Output optimizer bot #{bot_id}"
+    resource_profile:
+      cpu_millicores: 250
+      memory_mb: 256
+      gpu: false
+    lifecycle:
+      heartbeat_interval_ms: 5000
+      task_timeout_ms: 5000
+      idle_timeout_ms: 60000
+    capabilities: [compress, cache, batch_pack, rate_limit, dispatch]
+    config:
+      redis_url_env: REDIS_URL
+      output_kafka_topic: "nia.output.final"
+
+  - template_id: tpl_monitor
+    domain: monitor
+    shard_id: 4
+    bot_id_range: [9500, 9999]      # 500 monitoring bots
+    display_name_pattern: "monitor-{bot_id:04d}"
+    description: "System monitor bot #{bot_id}"
+    resource_profile:
+      cpu_millicores: 100
+      memory_mb: 128
+      gpu: false
+    lifecycle:
+      heartbeat_interval_ms: 5000
+      task_timeout_ms: 10000
+      idle_timeout_ms: 300000
+    capabilities: [health_check, metrics_emit, alert_dispatch]
+    config:
+      prometheus_push_gateway: "http://pushgateway.internal:9091"
+      alert_webhook_env: ALERT_WEBHOOK_URL
+
+##############################################################################
+# Explicit Bot Definitions
+# For named/singleton bots (e.g., shard coordinators, seed crawlers).
+#
+# Merge Strategy: explicit_bots take precedence over template-generated bots
+# at the same bot_id.  The generator script (scripts/generate_bot_catalog.py)
+# first expands all bot_templates, then overwrites any colliding IDs with the
+# explicit_bots entries.  Coordinator bots at IDs 0, 2000, 4000, 6000, 8000
+# are therefore intentionally defined in both the template range and here —
+# the explicit definition wins and assigns them the 'coordinator' role.
+#
+# Unallocated bot IDs: template ranges cover named specializations but leave
+# gaps within each shard (e.g., shard 0: IDs 800–1999 are unallocated in this
+# example file).  Those IDs form a RESERVE POOL: available for future domain
+# additions without shard restructuring.  The reserve pool is NOT pre-populated
+# — bots in those ranges are only registered when a new domain template is added.
+##############################################################################
+explicit_bots:
+
+  - bot_id: 0
+    display_name: "shard-0-coordinator"
+    domain: flipper_fap_builder
+    shard_id: 0
+    role: coordinator               # coordinator | worker
+    description: "Shard 0 coordinator — manages task assignment within shard"
+    resource_profile:
+      cpu_millicores: 500
+      memory_mb: 512
+      gpu: false
+    lifecycle:
+      heartbeat_interval_ms: 5000
+      task_timeout_ms: 30000
+      idle_timeout_ms: 600000
+
+  - bot_id: 2000
+    display_name: "shard-1-coordinator"
+    domain: github_crawler
+    shard_id: 1
+    role: coordinator
+    description: "Shard 1 coordinator"
+    resource_profile:
+      cpu_millicores: 500
+      memory_mb: 512
+      gpu: false
+    lifecycle:
+      heartbeat_interval_ms: 5000
+      task_timeout_ms: 30000
+      idle_timeout_ms: 600000
+
+  - bot_id: 4000
+    display_name: "shard-2-coordinator"
+    domain: arduino_compiler
+    shard_id: 2
+    role: coordinator
+    description: "Shard 2 coordinator"
+    resource_profile:
+      cpu_millicores: 500
+      memory_mb: 512
+      gpu: false
+    lifecycle:
+      heartbeat_interval_ms: 5000
+      task_timeout_ms: 30000
+      idle_timeout_ms: 600000
+
+  - bot_id: 6000
+    display_name: "shard-3-coordinator"
+    domain: validator
+    shard_id: 3
+    role: coordinator
+    description: "Shard 3 coordinator"
+    resource_profile:
+      cpu_millicores: 500
+      memory_mb: 512
+      gpu: false
+    lifecycle:
+      heartbeat_interval_ms: 5000
+      task_timeout_ms: 30000
+      idle_timeout_ms: 600000
+
+  - bot_id: 8000
+    display_name: "shard-4-coordinator"
+    domain: optimizer
+    shard_id: 4
+    role: coordinator
+    description: "Shard 4 coordinator"
+    resource_profile:
+      cpu_millicores: 500
+      memory_mb: 512
+      gpu: false
+    lifecycle:
+      heartbeat_interval_ms: 5000
+      task_timeout_ms: 30000
+      idle_timeout_ms: 600000
+
+##############################################################################
+# Reserve Pools (Unallocated Bot ID Ranges)
+# These ID ranges are intentionally unallocated.  They form a per-shard
+# expansion buffer — add new domain templates using IDs from this pool to
+# grow capacity without re-sharding.
+#
+# Current allocation summary:
+#   Shard 0:  0–799 allocated (800 bots) + 800–1999 reserved (1,200 slots)
+#   Shard 1:  2000–3199 allocated (1,200 bots) + 3200–3999 reserved (800 slots)
+#   Shard 2:  4000–5999 allocated (2,000 bots) — fully allocated
+#   Shard 3:  6000–7999 allocated (2,000 bots) — fully allocated
+#   Shard 4:  8000–9999 allocated (2,000 bots) — fully allocated
+##############################################################################
+reserve_pools:
+  - shard_id: 0
+    bot_id_range: [800, 1999]
+    slots: 1200
+    note: "Reserved for future FAP/firmware domain expansion in shard 0"
+
+  - shard_id: 1
+    bot_id_range: [3200, 3999]
+    slots: 800
+    note: "Reserved for future file/crawler domain expansion in shard 1"
+
+##############################################################################
+# Shard Strategy
+# Defines how bot IDs are distributed across shards and how the catalog is
+# sharded for storage/loading efficiency.
+##############################################################################
+shard_strategy:
+  algorithm: consistent_hash        # consistent_hash | modulo | range
+  hash_function: jump_hash          # jump_hash | fnv1a | xxhash
+  virtual_nodes_per_shard: 100      # higher = more even distribution
+  catalog_shard_files:
+    # For production, split catalog into per-shard files to limit load size:
+    # catalog.shard-0.yaml  → bots 0–1999
+    # catalog.shard-1.yaml  → bots 2000–3999
+    # catalog.shard-2.yaml  → bots 4000–5999
+    # catalog.shard-3.yaml  → bots 6000–7999
+    # catalog.shard-4.yaml  → bots 8000–9999
+    enabled: false                  # set true to generate split files
+    output_dir: "config/bots/shards/"
+  lazy_load:
+    enabled: true                   # load shard file only when sub-orch starts
+    cache_ttl_seconds: 3600
+
+##############################################################################
+# Bot Registration
+##############################################################################
+registration:
+  backend: in_memory                # in_memory | redis | etcd | consul
+  # redis_url_env: REDIS_URL        # uncomment for Redis backend
+  # etcd_endpoints: []              # uncomment for etcd backend
+  ttl_seconds: 30                   # bot registration expiry; renewed by heartbeat
+  deregister_on_idle_timeout: true
+
+##############################################################################
+# Future Integration Hooks
+##############################################################################
+# future_hooks:
+#   BOT_REGISTRY_BACKEND:
+#     description: >
+#       Connect registration.backend to etcd or Consul for distributed discovery.
+#       Interface: BotRegistry.register(bot_spec) / BotRegistry.lookup(domain, shard)
+#   CATALOG_GENERATOR:
+#     description: >
+#       scripts/generate_bot_catalog.py expands bot_templates into full catalog.
+#       Not yet implemented; placeholder for CI/CD pipeline integration.
+#   DYNAMIC_SPECIALIZATION:
+#     description: >
+#       Allow bots to declare additional capabilities at runtime via
+#       BotRegistry.update_capabilities(bot_id, capabilities[])
+#   RESOURCE_SCHEDULER:
+#     description: >
+#       Integrate resource_profile with Kubernetes resource requests/limits
+#       or with a custom resource scheduler for GPU allocation.
