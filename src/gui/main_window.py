@@ -41,6 +41,9 @@ class MainWindow(QMainWindow):
         self.tabs.addTab(ArduinoPanelWidget(self.config), "Arduino/ESP32")
         self.tabs.addTab(TerminalWidget(self.config), "Terminal")
         self.tabs.addTab(GitHubSearchWidget(self.config), "GitHub Search")
+
+        from .orchestration_tab import OrchestrationTab
+        self.tabs.addTab(OrchestrationTab(self.config), "AI Orchestration")
         
         # Create status bar
         self.statusBar().showMessage("Ready")
