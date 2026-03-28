@@ -1,0 +1,216 @@
+version: "3.9"
+
+# ============================================================
+# NiA FBT26 — Full AI Stack
+# 3 orchestrators + 10 model runners
+# ============================================================
+
+x-restart-policy: &restart-policy
+  restart: unless-stopped
+
+x-healthcheck-defaults: &hc-defaults
+  interval: 30s
+  timeout: 10s
+  retries: 3
+  start_period: 60s
+
+services:
+
+  # ──────────────────────────────────────────────────────────
+  # Orchestration layer
+  # ──────────────────────────────────────────────────────────
+
+  super-orchestrator:
+    <<: *restart-policy
+    image: nia-fbt26/super-orchestrator:latest
+    build:
+      context: ../src/orchestration/super
+      dockerfile: Dockerfile
+    ports:
+      - "9000:9000"
+    environment:
+      - HUGGINGFACE_API_KEY=${HUGGINGFACE_API_KEY}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/health"]
+      <<: *hc-defaults
+
+  code-orchestrator:
+    <<: *restart-policy
+    image: nia-fbt26/code-orchestrator:latest
+    build:
+      context: ../src/orchestration/code
+      dockerfile: Dockerfile
+    ports:
+      - "9001:9001"
+    environment:
+      - HUGGINGFACE_API_KEY=${HUGGINGFACE_API_KEY}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9001/health"]
+      <<: *hc-defaults
+
+  analysis-orchestrator:
+    <<: *restart-policy
+    image: nia-fbt26/analysis-orchestrator:latest
+    build:
+      context: ../src/orchestration/analysis
+      dockerfile: Dockerfile
+    ports:
+      - "9002:9002"
+    environment:
+      - HUGGINGFACE_API_KEY=${HUGGINGFACE_API_KEY}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9002/health"]
+      <<: *hc-defaults
+
+  # ──────────────────────────────────────────────────────────
+  # Model runners
+  # ──────────────────────────────────────────────────────────
+
+  code-generation:
+    <<: *restart-policy
+    image: nia-fbt26/code-generation:latest
+    build:
+      context: ../src/models/code_generation
+      dockerfile: Dockerfile
+    ports:
+      - "8001:8001"
+    environment:
+      - HUGGINGFACE_API_KEY=${HUGGINGFACE_API_KEY}
+      - MODEL_ID=deepseek-ai/deepseek-coder-6.7b-instruct
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      <<: *hc-defaults
+
+  code-review:
+    <<: *restart-policy
+    image: nia-fbt26/code-review:latest
+    build:
+      context: ../src/models/code_review
+      dockerfile: Dockerfile
+    ports:
+      - "8002:8002"
+    environment:
+      - HUGGINGFACE_API_KEY=${HUGGINGFACE_API_KEY}
+      - MODEL_ID=codellama/CodeLlama-7b-hf
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      <<: *hc-defaults
+
+  nl-to-cli:
+    <<: *restart-policy
+    image: nia-fbt26/nl-to-cli:latest
+    build:
+      context: ../src/models/nl_to_cli
+      dockerfile: Dockerfile
+    ports:
+      - "8003:8003"
+    environment:
+      - HUGGINGFACE_API_KEY=${HUGGINGFACE_API_KEY}
+      - MODEL_ID=meta-llama/Llama-3.2-1B
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8003/health"]
+      <<: *hc-defaults
+
+  docs-generator:
+    <<: *restart-policy
+    image: nia-fbt26/docs-generator:latest
+    build:
+      context: ../src/models/docs_generator
+      dockerfile: Dockerfile
+    ports:
+      - "8004:8004"
+    environment:
+      - HUGGINGFACE_API_KEY=${HUGGINGFACE_API_KEY}
+      - MODEL_ID=mistralai/Mistral-7B-v0.3
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8004/health"]
+      <<: *hc-defaults
+
+  signal-classifier:
+    <<: *restart-policy
+    image: nia-fbt26/signal-classifier:latest
+    build:
+      context: ../src/models/signal_classifier
+      dockerfile: Dockerfile
+    ports:
+      - "8005:8005"
+    environment:
+      - HUGGINGFACE_API_KEY=${HUGGINGFACE_API_KEY}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8005/health"]
+      <<: *hc-defaults
+
+  firmware-analysis:
+    <<: *restart-policy
+    image: nia-fbt26/firmware-analysis:latest
+    build:
+      context: ../src/models/firmware_analysis
+      dockerfile: Dockerfile
+    ports:
+      - "8006:8006"
+    environment:
+      - HUGGINGFACE_API_KEY=${HUGGINGFACE_API_KEY}
+      - MODEL_ID=bigcode/starcoder2-3b
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8006/health"]
+      <<: *hc-defaults
+
+  github-ranker:
+    <<: *restart-policy
+    image: nia-fbt26/github-ranker:latest
+    build:
+      context: ../src/models/github_ranker
+      dockerfile: Dockerfile
+    ports:
+      - "8007:8007"
+    environment:
+      - HUGGINGFACE_API_KEY=${HUGGINGFACE_API_KEY}
+      - MODEL_ID=BAAI/bge-small-en-v1.5
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8007/health"]
+      <<: *hc-defaults
+
+  log-analyzer:
+    <<: *restart-policy
+    image: nia-fbt26/log-analyzer:latest
+    build:
+      context: ../src/models/log_analyzer
+      dockerfile: Dockerfile
+    ports:
+      - "8008:8008"
+    environment:
+      - HUGGINGFACE_API_KEY=${HUGGINGFACE_API_KEY}
+      - MODEL_ID=microsoft/phi-2
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8008/health"]
+      <<: *hc-defaults
+
+  build-diagnostics:
+    <<: *restart-policy
+    image: nia-fbt26/build-diagnostics:latest
+    build:
+      context: ../src/models/build_diagnostics
+      dockerfile: Dockerfile
+    ports:
+      - "8009:8009"
+    environment:
+      - HUGGINGFACE_API_KEY=${HUGGINGFACE_API_KEY}
+      - MODEL_ID=deepseek-ai/deepseek-coder-1.3b-instruct
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8009/health"]
+      <<: *hc-defaults
+
+  protocol-parser:
+    <<: *restart-policy
+    image: nia-fbt26/protocol-parser:latest
+    build:
+      context: ../src/models/protocol_parser
+      dockerfile: Dockerfile
+    ports:
+      - "8010:8010"
+    environment:
+      - HUGGINGFACE_API_KEY=${HUGGINGFACE_API_KEY}
+      - MODEL_ID=meta-llama/Llama-3.2-1B
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8010/health"]
+      <<: *hc-defaults
