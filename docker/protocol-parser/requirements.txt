@@ -1,0 +1,8 @@
+fastapi>=0.110.0
+uvicorn[standard]>=0.29.0
+pydantic>=2.5.0
+requests>=2.31.0
+protobuf>=4.23.0
+construct>=2.10.68
+transformers>=4.40.0
+torch>=2.2.0

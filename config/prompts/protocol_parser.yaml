@@ -1,0 +1,65 @@
+# Protocol Parser — Prompt Templates
+# ------------------------------------
+# Each template uses Python str.format() style placeholders.
+# Available variables are documented per template.
+
+parse_serial_data: |
+  {context}
+
+  Parse the following raw hex bytes and produce a structured field-by-field
+  breakdown. Identify each field name, byte offset, raw value, and decoded meaning.
+  Hex: {hex_data}
+
+  Respond in JSON with a 'fields' list where each element has:
+    - field: string field name
+    - offset_bytes: integer byte offset
+    - raw_hex: hex string
+    - decoded_value: human-readable decoded value
+    - description: brief explanation
+
+explain_protocol: |
+  {context}
+
+  Write a concise developer-focused documentation summary for this protocol.
+  Include:
+  - Purpose and typical use cases
+  - Physical / link layer details
+  - Packet structure overview
+  - Key fields and their meanings
+  - Implementation notes and gotchas
+
+  Format as Markdown with clear headings.
+
+decode_packet: |
+  {context}
+
+  Decode the following packet byte-by-byte.
+  Packet hex: {hex_data}
+
+  Return a JSON array. Each element must have:
+    - field: string field name
+    - offset_bytes: integer byte offset
+    - raw_hex: hex value
+    - decoded_value: interpreted value
+    - description: one-line explanation
+
+identify_protocol: |
+  Known protocols: {known_protocols}
+
+  Analyse the following hex dump and identify the most likely protocol.
+  Consider byte patterns, preambles, length fields, and magic bytes.
+  Hex: {hex_data}
+
+  Respond in JSON with keys:
+    - protocol: best-guess protocol name
+    - confidence: integer 0-100
+    - reasoning: brief explanation of evidence used
+
+generate_packet: |
+  {context}
+
+  Generate a valid packet for the protocol above using the field values below.
+  Return ONLY the hex-encoded bytes of the complete packet (no spaces, no 0x prefix).
+
+  Fields:
+  {fields_json}

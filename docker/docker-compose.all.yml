@@ -1,0 +1,96 @@
+version: "3.8"
+
+# Master Docker Compose — launches all 10 AI services together.
+# Usage:
+#   export HUGGINGFACE_API_KEY=your_key
+#   docker compose -f docker/docker-compose.all.yml up --build
+
+services:
+  code-generation:
+    build:
+      context: ../
+      dockerfile: docker/code-generation/Dockerfile
+    ports:
+      - "8001:8001"
+    environment:
+      - HUGGINGFACE_API_KEY=${HUGGINGFACE_API_KEY:-}
+
+  code-review:
+    build:
+      context: ../
+      dockerfile: docker/code-review/Dockerfile
+    ports:
+      - "8002:8002"
+    environment:
+      - HUGGINGFACE_API_KEY=${HUGGINGFACE_API_KEY:-}
+
+  nl-to-cli:
+    build:
+      context: ../
+      dockerfile: docker/nl-to-cli/Dockerfile
+    ports:
+      - "8003:8003"
+    environment:
+      - HUGGINGFACE_API_KEY=${HUGGINGFACE_API_KEY:-}
+
+  docs-generator:
+    build:
+      context: ../
+      dockerfile: docker/docs-generator/Dockerfile
+    ports:
+      - "8004:8004"
+    environment:
+      - HUGGINGFACE_API_KEY=${HUGGINGFACE_API_KEY:-}
+
+  signal-classifier:
+    build:
+      context: ../
+      dockerfile: docker/signal-classifier/Dockerfile
+    ports:
+      - "8005:8005"
+
+  firmware-analysis:
+    build:
+      context: ../
+      dockerfile: docker/firmware-analysis/Dockerfile
+    ports:
+      - "8006:8006"
+    environment:
+      - HUGGINGFACE_API_KEY=${HUGGINGFACE_API_KEY:-}
+
+  github-ranker:
+    build:
+      context: ../
+      dockerfile: docker/github-ranker/Dockerfile
+    ports:
+      - "8007:8007"
+
+  log-analyzer:
+    build:
+      context: ../
+      dockerfile: docker/log-analyzer/Dockerfile
+    ports:
+      - "8008:8008"
+    environment:
+      - HUGGINGFACE_API_KEY=${HUGGINGFACE_API_KEY:-}
+
+  build-diagnostics:
+    build:
+      context: ../
+      dockerfile: docker/build-diagnostics/Dockerfile
+    ports:
+      - "8009:8009"
+    environment:
+      - HUGGINGFACE_API_KEY=${HUGGINGFACE_API_KEY:-}
+
+  protocol-parser:
+    build:
+      context: ../
+      dockerfile: docker/protocol-parser/Dockerfile
+    ports:
+      - "8010:8010"
+    environment:
+      - HUGGINGFACE_API_KEY=${HUGGINGFACE_API_KEY:-}
+
+volumes:
+  model-cache:
