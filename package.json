@@ -1,14 +1,37 @@
 {
   "name": "nia-fbt26",
-  "version": "1.0.0",
-  "description": "Advanced Flipper Zero Development Suite",
+  "version": "2.0.0",
+  "description": "Advanced Flipper Zero Development Suite — Vercel-Enhanced Edition",
   "main": "src/main.py",
   "scripts": {
-    "start": "python3 src/main.py",
-    "build": "pyinstaller --onefile --windowed --name NiA-FBT26 src/main.py",
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
     "test": "pytest tests/",
-    "lint": "flake8 src/",
-    "format": "black src/"
+    "py:build": "pyinstaller --onefile --windowed --name NiA-FBT26 src/main.py",
+    "py:lint": "flake8 src/",
+    "py:format": "black src/"
+  },
+  "dependencies": {
+    "next": "14.2.3",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "lucide-react": "0.378.0",
+    "swr": "2.2.5",
+    "@vercel/analytics": "1.3.1",
+    "@vercel/speed-insights": "1.0.10"
+  },
+  "devDependencies": {
+    "@types/node": "20.12.12",
+    "@types/react": "18.3.3",
+    "@types/react-dom": "18.3.0",
+    "typescript": "5.4.5",
+    "tailwindcss": "3.4.3",
+    "postcss": "8.4.38",
+    "autoprefixer": "10.4.19",
+    "eslint": "8.57.0",
+    "eslint-config-next": "14.2.3"
   },
   "keywords": [
     "flipper-zero",
@@ -16,7 +39,11 @@
     "firmware",
     "development",
     "arduino",
-    "esp32"
+    "esp32",
+    "vercel",
+    "nextjs",
+    "edge-functions",
+    "pwa"
   ],
   "author": "NaTo1000",
   "license": "MIT",
