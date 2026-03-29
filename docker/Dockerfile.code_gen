@@ -1,0 +1,41 @@
+# ── Stage 1: Builder ──────────────────────────────────────────────────────────
+FROM python:3.11-slim AS builder
+
+WORKDIR /build
+
+RUN apt-get update && apt-get install -y --no-install-recommends gcc && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN pip install --user --no-cache-dir \
+    transformers \
+    torch --index-url https://download.pytorch.org/whl/cpu \
+    requests \
+    PyYAML
+
+# ── Stage 2: Code Generation Service ─────────────────────────────────────────
+FROM python:3.11-slim AS code_gen
+
+LABEL org.opencontainers.image.title="NiA FBT26 Code Generation"
+LABEL org.opencontainers.image.description="DeepSeek code generation AI service"
+LABEL org.opencontainers.image.source="https://github.com/NaTo1000/NiA-FBT26"
+
+WORKDIR /app
+
+COPY --from=builder /root/.local /root/.local
+ENV PATH=/root/.local/bin:$PATH
+
+COPY src/ ./src/
+COPY config/ ./config/
+
+ENV NIA_ENV=production \
+    NIA_MODEL=deepseek-coder-6.7b-instruct \
+    NIA_MODEL_PORT=8083 \
+    NIA_OLLAMA_HOST=ollama \
+    NIA_OLLAMA_PORT=11434
+
+EXPOSE 8083
+
+HEALTHCHECK --interval=60s --timeout=10s --start-period=30s --retries=3 \
+    CMD python3 -c "import json; json.load(open('config/runtime.json'))" || exit 1
+
+CMD ["python3", "-m", "uvicorn", "src.code_gen:app", "--host", "0.0.0.0", "--port", "8083"]

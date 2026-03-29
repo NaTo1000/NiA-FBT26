@@ -1,0 +1,42 @@
+# ── Stage 1: Builder ──────────────────────────────────────────────────────────
+FROM python:3.11-slim AS builder
+
+WORKDIR /build
+
+RUN apt-get update && apt-get install -y --no-install-recommends gcc && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN pip install --user --no-cache-dir \
+    fastapi \
+    uvicorn \
+    requests \
+    PyYAML \
+    click \
+    rich
+
+# ── Stage 2: API ──────────────────────────────────────────────────────────────
+FROM python:3.11-slim AS api
+
+LABEL org.opencontainers.image.title="NiA FBT26 API"
+LABEL org.opencontainers.image.description="REST API for NiA FBT26 services"
+LABEL org.opencontainers.image.source="https://github.com/NaTo1000/NiA-FBT26"
+
+WORKDIR /app
+
+COPY --from=builder /root/.local /root/.local
+ENV PATH=/root/.local/bin:$PATH
+
+COPY src/ ./src/
+COPY config/ ./config/
+COPY versions/ ./versions/
+
+ENV NIA_ENV=production \
+    NIA_LOG_LEVEL=INFO \
+    NIA_API_PORT=8081
+
+EXPOSE 8081
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+    CMD python3 -c "import urllib.request; urllib.request.urlopen('http://localhost:8081/health')" || exit 1
+
+CMD ["python3", "-m", "uvicorn", "src.api:app", "--host", "0.0.0.0", "--port", "8081"]

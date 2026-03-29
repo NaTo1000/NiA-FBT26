@@ -1,0 +1,29 @@
+{
+  "version": "1.0.0",
+  "release_date": "2024-01-01",
+  "codename": "Flipper",
+  "status": "stable",
+  "python_minimum": "3.8",
+  "node_minimum": "16.0",
+  "features": [
+    "Core Flipper Zero device management",
+    "FAP builder and compiler",
+    "Firmware builder with base selection",
+    "Arduino and ESP32 support",
+    "GitHub repository search and download",
+    "Embedded terminal",
+    "File handlers (FAP, DFU, archive)",
+    "Plugin system"
+  ],
+  "breaking_changes": [],
+  "docker_images": {
+    "app": "ghcr.io/nato1000/nia-fbt26-app:1.0.0",
+    "api": "ghcr.io/nato1000/nia-fbt26-api:1.0.0",
+    "orchestrator": "ghcr.io/nato1000/nia-fbt26-orchestrator:1.0.0"
+  },
+  "compatibility": {
+    "flipper_firmware": ">=0.86.0",
+    "fbt_version": ">=1.0.0",
+    "arduino_ide": ">=2.0.0"
+  }
+}
