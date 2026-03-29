@@ -1,0 +1,7 @@
+{
+  "ios": {
+    "server_url": "http://localhost:7000",
+    "huggingface_api_key": "",
+    "bluetooth_enabled": true
+  }
+}
