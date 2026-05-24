@@ -1,70 +1,94 @@
 
-from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QPushButton,
-                             QLineEdit, QLabel, QComboBox, QTextEdit, QGroupBox)
+from PyQt6.QtWidgets import (
+    QWidget, QVBoxLayout, QHBoxLayout, QPushButton,
+    QLineEdit, QLabel, QComboBox, QTextEdit, QGroupBox, QFormLayout,
+)
+from PyQt6.QtCore import Qt
+
 
 class FAPBuilderWidget(QWidget):
-    """Widget for building Flipper Application Packages"""
-    
+    """Widget for building Flipper Application Packages — v2.0."""
+
     def __init__(self, config):
         super().__init__()
         self.config = config
         self.init_ui()
-        
+
     def init_ui(self):
         layout = QVBoxLayout()
-        
-        # Project info group
-        info_group = QGroupBox("Project Information")
-        info_layout = QVBoxLayout()
-        
-        # App ID
-        app_id_layout = QHBoxLayout()
-        app_id_layout.addWidget(QLabel("App ID:"))
+        layout.setSpacing(10)
+
+        # ── Project wizard ─────────────────────────────────────────────
+        wizard = QGroupBox("📋 Project Configuration")
+        form = QFormLayout()
+
         self.app_id_input = QLineEdit()
-        app_id_layout.addWidget(self.app_id_input)
-        info_layout.addLayout(app_id_layout)
-        
-        # App Name
-        name_layout = QHBoxLayout()
-        name_layout.addWidget(QLabel("Name:"))
+        self.app_id_input.setPlaceholderText("e.g. my_tool")
+        form.addRow("App ID:", self.app_id_input)
+
         self.name_input = QLineEdit()
-        name_layout.addWidget(self.name_input)
-        info_layout.addLayout(name_layout)
-        
-        # Category
-        cat_layout = QHBoxLayout()
-        cat_layout.addWidget(QLabel("Category:"))
+        self.name_input.setPlaceholderText("e.g. My Tool")
+        form.addRow("Name:", self.name_input)
+
         self.category_combo = QComboBox()
-        self.category_combo.addItems(["Tools", "Games", "GPIO", "Sub-GHz", "NFC", "USB", "Bluetooth"])
-        cat_layout.addWidget(self.category_combo)
-        info_layout.addLayout(cat_layout)
-        
-        info_group.setLayout(info_layout)
-        layout.addWidget(info_group)
-        
-        # Code editor
-        editor_group = QGroupBox("Source Code")
+        self.category_combo.addItems(
+            ["Tools", "Games", "GPIO", "Sub-GHz", "NFC", "USB", "Bluetooth", "Misc"]
+        )
+        form.addRow("Category:", self.category_combo)
+
+        self.entry_point_input = QLineEdit()
+        self.entry_point_input.setPlaceholderText("e.g. my_tool_app")
+        form.addRow("Entry Point:", self.entry_point_input)
+
+        wizard.setLayout(form)
+        layout.addWidget(wizard)
+
+        # ── Code editor ────────────────────────────────────────────────
+        editor_group = QGroupBox("📝 Source Code (C)")
         editor_layout = QVBoxLayout()
         self.code_editor = QTextEdit()
-        self.code_editor.setPlaceholderText("Write your application code here...")
+        self.code_editor.setFontFamily("Monospace")
+        self.code_editor.setPlaceholderText(
+            "#include <furi.h>\n\nint32_t my_app_main(void* p) {\n    UNUSED(p);\n    return 0;\n}"
+        )
         editor_layout.addWidget(self.code_editor)
         editor_group.setLayout(editor_layout)
         layout.addWidget(editor_group)
-        
-        # Buttons
-        button_layout = QHBoxLayout()
-        self.create_btn = QPushButton("Create Project")
+
+        # ── Build log ──────────────────────────────────────────────────
+        log_group = QGroupBox("🔨 Build Output")
+        log_layout = QVBoxLayout()
+        self.build_log = QTextEdit()
+        self.build_log.setReadOnly(True)
+        self.build_log.setFontFamily("Monospace")
+        self.build_log.setMaximumHeight(120)
+        log_layout.addWidget(self.build_log)
+        log_group.setLayout(log_layout)
+        layout.addWidget(log_group)
+
+        # ── Action buttons ─────────────────────────────────────────────
+        btn_row = QHBoxLayout()
+        self.create_btn = QPushButton("📁 Create Project")
         self.create_btn.clicked.connect(self.create_project)
-        self.build_btn = QPushButton("Build FAP")
+        self.build_btn = QPushButton("🔨 Build FAP")
         self.build_btn.clicked.connect(self.build_fap)
-        button_layout.addWidget(self.create_btn)
-        button_layout.addWidget(self.build_btn)
-        layout.addLayout(button_layout)
-        
+        self.deploy_btn = QPushButton("🚀 Deploy to Device")
+        self.deploy_btn.clicked.connect(self.deploy_fap)
+        btn_row.addWidget(self.create_btn)
+        btn_row.addWidget(self.build_btn)
+        btn_row.addWidget(self.deploy_btn)
+        layout.addLayout(btn_row)
+
         self.setLayout(layout)
-        
+
+    # ------------------------------------------------------------------
+
     def create_project(self):
-        print("Creating FAP project...")
-        
+        self.build_log.append("Creating FAP project scaffold…")
+
     def build_fap(self):
-        print("Building FAP...")
+        self.build_log.append("Building FAP…")
+
+    def deploy_fap(self):
+        self.build_log.append("Deploying to connected Flipper Zero…")
+

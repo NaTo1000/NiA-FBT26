@@ -17,18 +17,17 @@ from gui.main_window import MainWindow
 from core.config_manager import ConfigManager
 from core.device_manager import DeviceManager
 
-__version__ = "1.0.0"
+__version__ = "2.0.0"
 __author__ = "NaTo1000"
 
 def main():
     """Main entry point for NiA FBT26"""
-    
-    # Set high DPI scaling
+
+    # Qt6 handles high-DPI scaling automatically; PassThrough avoids
+    # fractional-scale rounding artefacts on mixed-DPI displays.
     QApplication.setHighDpiScaleFactorRoundingPolicy(
         Qt.HighDpiScaleFactorRoundingPolicy.PassThrough
     )
-    QApplication.setAttribute(Qt.ApplicationAttribute.AA_EnableHighDpiScaling)
-    QApplication.setAttribute(Qt.ApplicationAttribute.AA_UseHighDpiPixmaps)
     
     # Create application
     app = QApplication(sys.argv)

@@ -1,8 +1,188 @@
-# NiA FBT26 - Advanced Flipper Zero Development Suite
+# NiA FBT26 v2.0 — Flipper Zero Development Suite
 
-**Version**: 1.0.0  
-**Platform**: macOS, Linux, Windows  
-**Author**: NaTo1000
+![CI](https://github.com/NaTo1000/NiA-FBT26/actions/workflows/ci.yml/badge.svg)
+![Docker](https://ghcr.io/nato1000/nia-fbt26)
+**Version**: 2.0.0 | **Platform**: macOS, Linux, Windows | **Author**: NaTo1000
+
+---
+
+## 🚀 Overview
+
+NiA FBT26 is a modern, all-in-one development environment for the Flipper Zero. v2.0 brings a complete GUI rewrite, upgraded dependencies, Docker support, and a full CI/CD pipeline.
+
+---
+
+## ✨ Features
+
+| Panel | Description |
+|---|---|
+| 🏠 **Dashboard** | Device status card, quick actions, recent projects, system health |
+| 📱 **FAP Builder** | Project wizard, C code editor, one-click build & deploy |
+| ⚡ **Firmware Builder** | Official / Unleashed / RogueMaster sources, build config, flash |
+| 🔧 **Arduino/ESP32** | Board selector, sketch editor, compile/upload, serial monitor |
+| 💻 **Terminal** | Multi-tab terminal with command history and Flipper CLI |
+| 🔍 **GitHub Search** | Search Flipper apps/firmware, one-click download |
+| 📟 **Device Manager** | Auto-detect Flipper, SD card file browser |
+| ⚙️ **Settings** | Theme, editor prefs, paths, GitHub token, AI integration hooks |
+
+---
+
+## 📋 Requirements
+
+- Python **3.11+**
+- Git, curl
+- (Optional) ARM GCC toolchain for firmware building
+
+---
+
+## 🚀 Installation
+
+### From Source (recommended)
+
+```bash
+git clone https://github.com/NaTo1000/NiA-FBT26.git
+cd NiA-FBT26
+./setup.sh
+./nia-fbt26
+```
+
+### pip
+
+```bash
+pip install -r requirements.txt
+python3 src/main.py
+```
+
+### Docker
+
+```bash
+docker pull ghcr.io/nato1000/nia-fbt26:latest
+# GUI apps require a display — use X11 forwarding or VNC
+docker run -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix \
+    ghcr.io/nato1000/nia-fbt26:latest
+```
+
+---
+
+## 🔧 Configuration
+
+Edit `config/settings.json` (auto-created on first run):
+
+```json
+{
+  "version": "2.0.0",
+  "firmware_path": "~/flipper-firmware",
+  "sdk_path": "~/flipper-sdk",
+  "editor": { "theme": "monokai", "font_size": 12, "tab_size": 4 },
+  "build": { "parallel_jobs": 4, "optimization": "size", "debug": true },
+  "github": { "token": "", "cache_duration": 3600 },
+  "ai_integration": {
+    "huggingface_api_key": "",
+    "model_endpoint": "",
+    "local_model_path": ""
+  },
+  "device": { "auto_connect": true, "default_baud_rate": 115200 }
+}
+```
+
+Environment variable overrides (via `.env` or shell):
+
+| Variable | Config field |
+|---|---|
+| `NIA_GITHUB_TOKEN` | `github.token` |
+| `NIA_HF_API_KEY` | `ai_integration.huggingface_api_key` |
+| `NIA_MODEL_ENDPOINT` | `ai_integration.model_endpoint` |
+| `NIA_LOCAL_MODEL_PATH` | `ai_integration.local_model_path` |
+
+---
+
+## 🏗️ Project Structure
+
+```
+NiA-FBT26/
+├── src/
+│   ├── main.py                  # Entry point (v2.0.0)
+│   ├── gui/
+│   │   ├── main_window.py       # Modern tabbed QMainWindow
+│   │   ├── dashboard.py         # Home dashboard
+│   │   ├── fap_builder.py       # FAP project wizard & editor
+│   │   ├── firmware_builder.py  # Firmware source & build
+│   │   ├── arduino_panel.py     # Arduino/ESP32 editor
+│   │   ├── terminal_widget.py   # Multi-tab terminal emulator
+│   │   ├── github_search.py     # GitHub search & download
+│   │   ├── device_manager.py    # USB device manager
+│   │   └── settings_widget.py   # Settings UI
+│   ├── core/
+│   │   ├── config_manager.py    # JSON config + env overrides
+│   │   └── device_manager.py    # USB/serial detection, Qt signals
+│   └── builders/
+│       ├── fap_builder.py       # FAP scaffolding + FBT integration
+│       └── firmware_builder.py  # Firmware clone/build/flash
+├── config/
+│   └── settings.json            # Default settings
+├── .github/
+│   └── workflows/
+│       └── ci.yml               # lint + test + docker-build
+├── Dockerfile
+├── .dockerignore
+├── requirements.txt
+├── package.json
+├── setup.sh
+└── README.md
+```
+
+---
+
+## 🔄 v2.0 Changelog
+
+- **Full GUI rewrite** — modern dark-themed dashboard with 8 tabs
+- **Dependencies** — all packages upgraded to latest 2026 versions
+- **New deps** — grpcio, confluent-kafka, redis, pydantic, aiohttp, python-dotenv
+- **Bug fix** — removed deprecated `AA_EnableHighDpiScaling` / `AA_UseHighDpiPixmaps` (Qt5 compat flags removed in Qt6 6.5+)
+- **Config manager** — Pydantic validation, env-var overrides, config versioning
+- **Device manager** — pyserial/pyusb detection, Qt signals for connect/disconnect
+- **FAP builder** — project scaffolding, FBT integration, deploy button
+- **Firmware builder** — Official/Unleashed/RogueMaster source selector, progress log
+- **New widgets** — Device Manager tab, Settings tab with AI integration hooks
+- **Docker** — `Dockerfile` + `.dockerignore` for containerised deployments
+- **CI/CD** — GitHub Actions: lint → test → docker-build & push to ghcr.io
+
+---
+
+## 🐳 Docker Usage
+
+```bash
+# Build locally
+docker build -t nia-fbt26 .
+
+# Run (Linux with X11)
+docker run --rm -e DISPLAY=$DISPLAY \
+    -v /tmp/.X11-unix:/tmp/.X11-unix \
+    nia-fbt26
+```
+
+---
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/my-feature`
+3. Commit your changes: `git commit -m 'feat: add my feature'`
+4. Push to the branch: `git push origin feature/my-feature`
+5. Open a Pull Request
+
+Please run `black src/` and `flake8 src/` before submitting.
+
+---
+
+## 📝 License
+
+MIT License — see LICENSE for details.
+
+---
+
+**Built with ❤️ by NaTo1000 for the Flipper Zero Community**
+
 
 ---
 

@@ -1,0 +1,32 @@
+{
+  "version": "2.0.0",
+  "firmware_path": "~/flipper-firmware",
+  "sdk_path": "~/flipper-sdk",
+  "arduino_path": "~/Arduino",
+  "esp32_tools": "~/.platformio",
+  "python_env": ".venv",
+  "editor": {
+    "theme": "monokai",
+    "font_size": 12,
+    "tab_size": 4,
+    "show_line_numbers": true
+  },
+  "build": {
+    "parallel_jobs": 4,
+    "optimization": "size",
+    "debug": true
+  },
+  "github": {
+    "token": "",
+    "cache_duration": 3600
+  },
+  "ai_integration": {
+    "huggingface_api_key": "",
+    "model_endpoint": "",
+    "local_model_path": ""
+  },
+  "device": {
+    "auto_connect": true,
+    "default_baud_rate": 115200
+  }
+}
