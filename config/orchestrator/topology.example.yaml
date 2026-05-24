@@ -1,0 +1,448 @@
+# Orchestrator Topology — Example Configuration
+#
+# File:    config/orchestrator/topology.example.yaml
+# Version: 1.0.0
+# Status:  Example / Scaffold
+#
+# Copy this file to topology.yaml and adjust values before starting the
+# orchestration layer.  No runtime code reads this file directly in the
+# current scaffold; it is the reference for future config-loader
+# integration (see future_hook: CONFIG_LOADER below).
+#
+# Schema reference: docs/architecture/super_orchestrator.md
+
+---
+
+##############################################################################
+# Superior Orchestrator
+##############################################################################
+superior_orchestrator:
+  id: so-primary
+  display_name: "Superior Orchestrator — Primary"
+
+  # Network / service discovery
+  host: "0.0.0.0"
+  port: 9000
+  grpc_port: 9001
+  health_check_path: "/healthz"
+  metrics_path: "/metrics"
+
+  # High-availability — hot standby
+  ha:
+    enabled: true
+    standby_id: so-standby
+    standby_host: "so-standby.internal"
+    standby_port: 9000
+    leader_election: raft          # raft | zookeeper | etcd
+    heartbeat_interval_ms: 5000
+    failover_timeout_ms: 15000
+
+  # Global circuit-breaker defaults (overridable per sub-orchestrator)
+  circuit_breaker:
+    failure_rate_threshold: 0.50
+    sliding_window_size: 20
+    wait_duration_open_ms: 30000
+    permitted_calls_half_open: 5
+
+  # Dead-letter & replay
+  dead_letter:
+    backend: kafka                 # kafka | sqs | rabbitmq | redis
+    topic: "nia.dlq.global"
+    retention_hours: 168           # 7 days
+
+  # Future integration hook — swap policy engine
+  # future_hook: SO_POLICY_PROVIDER
+  policy_provider:
+    type: builtin                  # builtin | opa
+    # opa_endpoint: "http://opa.internal:8181/v1/data/nia/policy"
+
+##############################################################################
+# Sub-Orchestrators
+# Exactly 5 entries required; each owns one pipeline phase group and one bot
+# shard (2 000 bots).
+##############################################################################
+sub_orchestrators:
+
+  - id: sub_orch_ingest
+    display_name: "Sub-Orchestrator 1 — Ingest"
+    phase_group: ingest
+    bot_shard:
+      shard_id: 0
+      bot_id_range: [0, 1999]
+    host: "sub-orch-ingest.internal"
+    port: 9100
+    grpc_port: 9101
+    replicas:
+      min: 1
+      max: 5
+    circuit_breaker:
+      failure_rate_threshold: 0.50
+      sliding_window_size: 20
+      wait_duration_open_ms: 30000
+    queue:
+      backend: kafka
+      consumer_group: "nia.ingest.cg"
+      topics:
+        input:  "nia.ingest.input"
+        output: "nia.normalize.input"
+        dlq:    "nia.dlq.ingest"
+      consumer_concurrency: 16
+      max_poll_records: 500
+
+  - id: sub_orch_normalize
+    display_name: "Sub-Orchestrator 2 — Normalize"
+    phase_group: normalize
+    bot_shard:
+      shard_id: 1
+      bot_id_range: [2000, 3999]
+    host: "sub-orch-normalize.internal"
+    port: 9110
+    grpc_port: 9111
+    replicas:
+      min: 1
+      max: 5
+    circuit_breaker:
+      failure_rate_threshold: 0.50
+      sliding_window_size: 20
+      wait_duration_open_ms: 30000
+    queue:
+      backend: kafka
+      consumer_group: "nia.normalize.cg"
+      topics:
+        input:  "nia.normalize.input"
+        output: "nia.route.input"
+        dlq:    "nia.dlq.normalize"
+      consumer_concurrency: 16
+      max_poll_records: 500
+
+  - id: sub_orch_infer
+    display_name: "Sub-Orchestrator 3 — Infer"
+    phase_group: infer
+    bot_shard:
+      shard_id: 2
+      bot_id_range: [4000, 5999]
+    host: "sub-orch-infer.internal"
+    port: 9120
+    grpc_port: 9121
+    replicas:
+      min: 1
+      max: 5
+    circuit_breaker:
+      failure_rate_threshold: 0.40   # tighter — ML failures are costly
+      sliding_window_size: 10
+      wait_duration_open_ms: 60000
+    queue:
+      backend: kafka
+      consumer_group: "nia.infer.cg"
+      topics:
+        input:  "nia.infer.input"
+        output: "nia.validate.input"
+        dlq:    "nia.dlq.infer"
+      consumer_concurrency: 8        # GPU-bound; lower concurrency
+      max_poll_records: 100
+
+  - id: sub_orch_validate
+    display_name: "Sub-Orchestrator 4 — Validate"
+    phase_group: validate
+    bot_shard:
+      shard_id: 3
+      bot_id_range: [6000, 7999]
+    host: "sub-orch-validate.internal"
+    port: 9130
+    grpc_port: 9131
+    replicas:
+      min: 1
+      max: 5
+    circuit_breaker:
+      failure_rate_threshold: 0.50
+      sliding_window_size: 20
+      wait_duration_open_ms: 30000
+    queue:
+      backend: kafka
+      consumer_group: "nia.validate.cg"
+      topics:
+        input:  "nia.validate.input"
+        output: "nia.optimize.input"
+        dlq:    "nia.dlq.validate"
+      consumer_concurrency: 24
+      max_poll_records: 500
+
+  - id: sub_orch_optimize
+    display_name: "Sub-Orchestrator 5 — Optimize"
+    phase_group: optimize
+    bot_shard:
+      shard_id: 4
+      bot_id_range: [8000, 9999]
+    host: "sub-orch-optimize.internal"
+    port: 9140
+    grpc_port: 9141
+    replicas:
+      min: 1
+      max: 5
+    circuit_breaker:
+      failure_rate_threshold: 0.50
+      sliding_window_size: 20
+      wait_duration_open_ms: 30000
+    queue:
+      backend: kafka
+      consumer_group: "nia.optimize.cg"
+      topics:
+        input:  "nia.optimize.input"
+        output: "nia.output.final"
+        dlq:    "nia.dlq.optimize"
+      consumer_concurrency: 32
+      max_poll_records: 1000
+
+##############################################################################
+# Transform Group Definitions
+# Maps each of the 50 stage IDs to configuration.
+# For full stage list see: docs/architecture/transform_pipeline.md
+##############################################################################
+transform_groups:
+
+  ingest:
+    owner: sub_orch_ingest
+    stages:
+      - id: ingest.http_receiver
+        enabled: true
+        timeout_ms: 5000
+        retry: {max_attempts: 3, backoff: {strategy: exponential, initial_interval_ms: 100}}
+      - id: ingest.grpc_receiver
+        enabled: true
+        timeout_ms: 5000
+        retry: {max_attempts: 3, backoff: {strategy: exponential, initial_interval_ms: 100}}
+      - id: ingest.file_watcher
+        enabled: true
+        timeout_ms: 10000
+        config: {watch_path: "/data/drop-zone", poll_interval_ms: 1000}
+      - id: ingest.queue_consumer
+        enabled: true
+        timeout_ms: 5000
+      - id: ingest.webhook_handler
+        enabled: true
+        timeout_ms: 3000
+        config: {hmac_secret_env: WEBHOOK_HMAC_SECRET}
+      - id: ingest.batch_splitter
+        enabled: true
+        config: {max_record_size_bytes: 1048576}  # 1 MB
+      - id: ingest.schema_detect
+        enabled: true
+        timeout_ms: 200
+      - id: ingest.dedup_gate
+        enabled: true
+        config: {dedup_window_minutes: 5, backend: redis}
+
+  normalize:
+    owner: sub_orch_normalize
+    stages:
+      - id: normalize.charset_convert
+        enabled: true
+        timeout_ms: 100
+      - id: normalize.json_flatten
+        enabled: true
+        timeout_ms: 100
+      - id: normalize.timestamp_norm
+        enabled: true
+        timeout_ms: 50
+      - id: normalize.field_rename
+        enabled: true
+        config: {alias_map_path: "config/normalize/field_aliases.json"}
+      - id: normalize.null_coerce
+        enabled: true
+        timeout_ms: 50
+      - id: normalize.type_cast
+        enabled: true
+        timeout_ms: 50
+      - id: normalize.unit_convert
+        enabled: true
+        timeout_ms: 50
+      - id: normalize.pii_mask
+        enabled: true
+        timeout_ms: 150
+        config:
+          pii_fields: ["email", "phone", "ip_address", "ssn"]
+          hash_algorithm: sha256
+          salt_env_var: PII_SALT
+
+  route:
+    # Route stages are co-located with sub_orch_normalize rather than having
+    # a dedicated sub-orchestrator. This is intentional: routing decisions
+    # depend directly on normalized data and must be low-latency.  With only
+    # 5 sub-orchestrators and 6 phase groups, the route group is merged with
+    # normalize to keep the critical normalization→routing path in a single
+    # process, avoiding an extra network hop.  Future expansion to 6
+    # sub-orchestrators would give route its own dedicated sub-orchestrator
+    # (see future_hooks: SUB_ORCH_EXPANSION).
+    owner: sub_orch_normalize
+    stages:
+      - id: route.domain_classifier
+        enabled: true
+        timeout_ms: 200
+      - id: route.priority_scorer
+        enabled: true
+        timeout_ms: 50
+      - id: route.shard_selector
+        enabled: true
+        timeout_ms: 50
+        config: {hash_algorithm: jump_hash, shard_count: 5}
+      - id: route.load_balancer
+        enabled: true
+        config: {algorithm: weighted_round_robin}
+      - id: route.geo_router
+        enabled: false  # enable when multi-region deployment is active
+        config: {geo_ip_db: "/data/GeoLite2-City.mmdb"}
+      - id: route.experiment_splitter
+        enabled: false  # enable when A/B testing framework is integrated
+        config: {experiment_config_path: "config/experiments/active.yaml"}
+      - id: route.fallback_router
+        enabled: true
+        timeout_ms: 100
+      - id: route.dead_letter_sink
+        enabled: true
+        timeout_ms: 200
+
+  infer:
+    owner: sub_orch_infer
+    stages:
+      - id: infer.feature_extract
+        enabled: true
+        timeout_ms: 300
+      - id: infer.embedding_gen
+        enabled: true
+        timeout_ms: 500
+        config: {model_id: "text-embedding-v1", batch_size: 32}
+      - id: infer.classifier
+        enabled: true
+        timeout_ms: 500
+        config: {model_id: "domain-classifier-v2", confidence_threshold: 0.75}
+      - id: infer.anomaly_detect
+        enabled: true
+        timeout_ms: 300
+        config: {algorithm: isolation_forest, contamination: 0.05}
+      - id: infer.intent_parser
+        enabled: false  # enable when NLU model is deployed
+        timeout_ms: 500
+      - id: infer.sentiment_score
+        enabled: false
+        timeout_ms: 300
+      - id: infer.entity_extract
+        enabled: false
+        timeout_ms: 400
+      - id: infer.confidence_gate
+        enabled: true
+        timeout_ms: 50
+        config: {min_confidence: 0.60}
+      - id: infer.model_version_check
+        enabled: true
+        timeout_ms: 50
+        config: {registry_url: "http://model-registry.internal:8080"}
+
+  validate:
+    owner: sub_orch_validate
+    stages:
+      - id: validate.schema_check
+        enabled: true
+        timeout_ms: 100
+        config: {schema_registry_url: "http://schema-registry.internal:8081"}
+      - id: validate.business_rules
+        enabled: true
+        timeout_ms: 200
+        config: {rules_path: "config/validate/business_rules.yaml"}
+      - id: validate.referential_integrity
+        enabled: true
+        timeout_ms: 300
+      - id: validate.range_check
+        enabled: true
+        timeout_ms: 50
+      - id: validate.regex_check
+        enabled: true
+        timeout_ms: 50
+      - id: validate.enum_check
+        enabled: true
+        timeout_ms: 50
+      - id: validate.signature_verify
+        enabled: true
+        timeout_ms: 100
+        config: {algorithm: hmac_sha256, secret_env_var: SIGNATURE_SECRET}
+      - id: validate.quarantine_tag
+        enabled: true
+        timeout_ms: 50
+
+  optimize:
+    owner: sub_orch_optimize
+    stages:
+      - id: optimize.dedup_aggregate
+        enabled: true
+        timeout_ms: 200
+        config: {window_seconds: 60}
+      - id: optimize.compress
+        enabled: true
+        config: {algorithm: zstd, level: 3, min_size_bytes: 4096}
+      - id: optimize.cache_lookup
+        enabled: true
+        timeout_ms: 50
+        config: {backend: redis, ttl_seconds: 300}
+      - id: optimize.cache_write
+        enabled: true
+        timeout_ms: 50
+        config: {backend: redis, ttl_seconds: 300}
+      - id: optimize.batch_pack
+        enabled: true
+        config: {max_batch_size: 100, max_wait_ms: 50}
+      - id: optimize.rate_limit
+        enabled: true
+        timeout_ms: 50
+        config: {default_rps: 1000, burst: 200, backend: redis}
+      - id: optimize.cost_score
+        enabled: false  # enable when billing integration is active
+        timeout_ms: 100
+      - id: optimize.emit_metrics
+        enabled: true
+        timeout_ms: 50
+        config: {prometheus_push_gateway: "http://pushgateway.internal:9091"}
+      - id: optimize.output_dispatch
+        enabled: true
+        timeout_ms: 500
+        config:
+          sinks:
+            - type: kafka
+              topic: "nia.output.final"
+            - type: webhook
+              url_env_var: OUTPUT_WEBHOOK_URL
+              enabled: false
+
+##############################################################################
+# Global Autoscaling Defaults
+# See also: docs/scalability/sharding_and_queueing.md
+##############################################################################
+autoscaling:
+  enabled: true
+  evaluation_interval_seconds: 15
+  bot_pool:
+    min_bots_per_shard: 10
+    max_bots_per_shard: 2000
+    target_lag_per_bot_seconds: 5
+    scale_down_cooldown_seconds: 300
+    scale_down_hysteresis: 0.20
+  sub_orchestrator:
+    min_replicas: 1
+    max_replicas: 5
+    target_queue_depth: 5000
+    target_cpu_utilization: 0.70
+    scale_up_stabilization_seconds: 30
+    scale_down_stabilization_seconds: 300
+
+##############################################################################
+# Future Integration Hooks
+##############################################################################
+# future_hooks:
+#   CONFIG_LOADER:
+#     description: >
+#       Load this file at runtime via config_manager.py ConfigManager.load_topology()
+#       Call hierarchy: main.py → ConfigManager → TopologyLoader → validate(schema)
+#   SO_POLICY_PROVIDER:
+#     description: Replace builtin policy engine with OPA (see superior_orchestrator.policy_provider)
+#   BOT_REGISTRY_BACKEND:
+#     description: Connect bot registration to etcd or Consul instead of in-memory store
+#   METRICS_EXPORTER:
+#     description: Wire prometheus_push_gateway in optimize.emit_metrics to Grafana dashboards
