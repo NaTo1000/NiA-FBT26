@@ -1,0 +1,44 @@
+# ── Stage 1: Builder ──────────────────────────────────────────────────────────
+FROM python:3.11-slim AS builder
+
+WORKDIR /build
+
+RUN apt-get update && apt-get install -y --no-install-recommends gcc && \
+    rm -rf /var/lib/apt/lists/*
+
+COPY requirements.txt .
+RUN pip install --user --no-cache-dir \
+    requests \
+    PyYAML \
+    click \
+    rich \
+    fastapi \
+    uvicorn
+
+# ── Stage 2: Orchestrator ─────────────────────────────────────────────────────
+FROM python:3.11-slim AS orchestrator
+
+LABEL org.opencontainers.image.title="NiA FBT26 Orchestrator"
+LABEL org.opencontainers.image.description="AI Model Orchestration Service"
+LABEL org.opencontainers.image.source="https://github.com/NaTo1000/NiA-FBT26"
+
+WORKDIR /app
+
+COPY --from=builder /root/.local /root/.local
+ENV PATH=/root/.local/bin:$PATH
+
+COPY src/ ./src/
+COPY config/ ./config/
+
+ENV NIA_ENV=production \
+    NIA_LOG_LEVEL=INFO \
+    NIA_ORCHESTRATOR_PORT=8082 \
+    NIA_OLLAMA_HOST=ollama \
+    NIA_OLLAMA_PORT=11434
+
+EXPOSE 8082
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
+    CMD python3 -c "import json; json.load(open('config/runtime.json'))" || exit 1
+
+CMD ["python3", "-m", "uvicorn", "src.orchestrator:app", "--host", "0.0.0.0", "--port", "8082"]

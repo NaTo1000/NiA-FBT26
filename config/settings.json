@@ -1,0 +1,52 @@
+{
+  "firmware_path": "~/flipper-firmware",
+  "sdk_path": "~/flipper-sdk",
+  "arduino_path": "~/Arduino",
+  "esp32_tools": "~/.platformio",
+  "python_env": ".venv",
+
+  "editor": {
+    "theme": "monokai",
+    "font_size": 12,
+    "tab_size": 4,
+    "word_wrap": true,
+    "line_numbers": true
+  },
+
+  "build": {
+    "parallel_jobs": 4,
+    "optimization": "size",
+    "debug": true,
+    "cache": true,
+    "output_dir": "dist"
+  },
+
+  "github": {
+    "token": "",
+    "cache_duration": 3600
+  },
+
+  "runtime_flags": {
+    "enable_ai_models": true,
+    "enable_orchestration": true,
+    "enable_self_healing": false,
+    "enable_research_lab": false,
+    "enable_esp32_ai": true,
+    "log_level": "INFO",
+    "debug_mode": false
+  },
+
+  "ports": {
+    "ui_port": 8080,
+    "api_port": 8081,
+    "ollama_port": 11434,
+    "metrics_port": 9090
+  },
+
+  "versions": {
+    "current": "1.0.0",
+    "supported": ["1.0.0", "2.0.0"],
+    "minimum_python": "3.8",
+    "minimum_node": "16.0"
+  }
+}

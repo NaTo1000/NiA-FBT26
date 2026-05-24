@@ -1,0 +1,54 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+.venv/
+venv/
+env/
+pip-wheel-metadata/
+.mypy_cache/
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# Node
+node_modules/
+npm-debug.log*
+
+# Build artifacts
+.build_cache/
+*.spec
+dist/
+*.app
+*.dmg
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+
+# Secrets / keys
+*.pem
+*.key
+config/secrets.json
+
+# Docker
+.dockerignore

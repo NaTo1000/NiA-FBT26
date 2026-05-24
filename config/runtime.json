@@ -1,0 +1,158 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "NiA FBT26 Runtime Parameters",
+  "description": "Runtime configuration schema for all NiA FBT26 components",
+  "version": "1.0.0",
+
+  "runtime": {
+    "version": "1.0.0",
+    "environment": "production",
+    "debug": false,
+    "log_level": "INFO",
+    "log_file": "logs/nia-fbt26.log"
+  },
+
+  "server": {
+    "host": "0.0.0.0",
+    "port": 8080,
+    "workers": 4,
+    "timeout": 30,
+    "ssl": false
+  },
+
+  "models": {
+    "code_generation": {
+      "model": "deepseek-coder-6.7b-instruct",
+      "backend": "ollama",
+      "port": 11434,
+      "max_tokens": 4096,
+      "temperature": 0.2,
+      "enabled": true
+    },
+    "code_review": {
+      "model": "codellama:13b",
+      "backend": "ollama",
+      "port": 11434,
+      "max_tokens": 2048,
+      "temperature": 0.1,
+      "enabled": true
+    },
+    "nl_to_cli": {
+      "model": "llama3:70b",
+      "backend": "ollama",
+      "port": 11434,
+      "max_tokens": 512,
+      "temperature": 0.0,
+      "enabled": true
+    },
+    "docs_generator": {
+      "model": "mistral:7b",
+      "backend": "ollama",
+      "port": 11434,
+      "max_tokens": 8192,
+      "temperature": 0.3,
+      "enabled": true
+    },
+    "signal_classifier": {
+      "model": "signal_classifier.onnx",
+      "backend": "onnxruntime",
+      "device": "cpu",
+      "enabled": true
+    },
+    "firmware_analysis": {
+      "model": "starcoder2:7b",
+      "backend": "ollama",
+      "port": 11434,
+      "max_tokens": 4096,
+      "temperature": 0.1,
+      "enabled": true
+    },
+    "github_ranker": {
+      "model": "BAAI/bge-small-en-v1.5",
+      "backend": "huggingface",
+      "device": "cpu",
+      "enabled": true
+    },
+    "log_analyzer": {
+      "model": "phi3:mini",
+      "backend": "ollama",
+      "port": 11434,
+      "max_tokens": 2048,
+      "temperature": 0.0,
+      "enabled": true
+    },
+    "build_diagnostics": {
+      "model": "deepseek-coder:1.3b",
+      "backend": "ollama",
+      "port": 11434,
+      "max_tokens": 1024,
+      "temperature": 0.0,
+      "enabled": true
+    },
+    "protocol_parser": {
+      "model": "llama3:8b",
+      "backend": "ollama",
+      "port": 11434,
+      "max_tokens": 2048,
+      "temperature": 0.1,
+      "enabled": true
+    }
+  },
+
+  "orchestration": {
+    "strategy": "round_robin",
+    "timeout": 60,
+    "retries": 3,
+    "health_check_interval": 30,
+    "load_balancing": true
+  },
+
+  "build": {
+    "parallel_jobs": 4,
+    "optimization": "size",
+    "debug": false,
+    "cache": true,
+    "cache_dir": ".build_cache",
+    "output_dir": "dist"
+  },
+
+  "device": {
+    "auto_detect": true,
+    "usb_timeout": 10,
+    "baud_rate": 115200,
+    "dfu_timeout": 120
+  },
+
+  "github": {
+    "token": "",
+    "cache_duration": 3600,
+    "rate_limit_buffer": 100
+  },
+
+  "ui": {
+    "theme": "dark",
+    "font_size": 12,
+    "language": "en",
+    "auto_update": true
+  },
+
+  "security": {
+    "ethical_use_enforced": true,
+    "authorized_use_only": true,
+    "audit_log": true,
+    "allowed_operations": [
+      "firmware_analysis",
+      "signal_classification",
+      "penetration_testing_authorized",
+      "code_review",
+      "build_automation"
+    ]
+  },
+
+  "health_checks": {
+    "enabled": true,
+    "endpoint": "/health",
+    "interval": 30,
+    "timeout": 5
+  }
+}

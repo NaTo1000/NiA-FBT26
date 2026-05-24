@@ -1,0 +1,43 @@
+{
+  "version": "2.0.0",
+  "release_date": "2024-06-01",
+  "codename": "Medusa",
+  "status": "beta",
+  "python_minimum": "3.10",
+  "node_minimum": "18.0",
+  "features": [
+    "Full AI orchestration stack (10 models)",
+    "Multi-model research conferencing lab",
+    "Self-healing AI runner manager",
+    "ESP32 TinyML firmware with edge AI",
+    "iOS SwiftUI mobile companion app",
+    "ARM64/AArch64/RISC-V embedded edition",
+    "Raspberry Pi 5 optimized edition",
+    "Thumb drive VM portable edition",
+    "jessicAi medusa cybersecurity assistant",
+    "MiniOS to iOS emulation layer",
+    "Runtime parameter system with CLI/env var support",
+    "Multi-stage Docker builds with CI/CD",
+    "Semantic versioning with automated changelogs"
+  ],
+  "breaking_changes": [
+    "Python minimum version raised from 3.8 to 3.10",
+    "Node.js minimum version raised from 16 to 18",
+    "Configuration schema updated — run migration: scripts/migrate_config.sh",
+    "API endpoints versioned under /api/v2/"
+  ],
+  "docker_images": {
+    "app": "ghcr.io/nato1000/nia-fbt26-app:2.0.0",
+    "api": "ghcr.io/nato1000/nia-fbt26-api:2.0.0",
+    "orchestrator": "ghcr.io/nato1000/nia-fbt26-orchestrator:2.0.0",
+    "code_gen": "ghcr.io/nato1000/nia-fbt26-code-gen:2.0.0",
+    "code_review": "ghcr.io/nato1000/nia-fbt26-code-review:2.0.0"
+  },
+  "compatibility": {
+    "flipper_firmware": ">=0.90.0",
+    "fbt_version": ">=1.5.0",
+    "arduino_ide": ">=2.2.0",
+    "esp_idf": ">=5.0.0",
+    "xcode": ">=15.0"
+  }
+}
