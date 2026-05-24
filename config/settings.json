@@ -1,0 +1,19 @@
+{
+  "firmware_path": "~/flipper-firmware",
+  "sdk_path": "~/flipper-sdk",
+  "arduino_path": "~/Arduino",
+  "editor": {
+    "theme": "monokai",
+    "font_size": 12
+  },
+  "research_lab": {
+    "hotkey": "Ctrl+Shift+R",
+    "default_models": [
+      "meta-llama/Meta-Llama-3.1-8B-Instruct",
+      "microsoft/Phi-3-medium-128k-instruct",
+      "mistralai/Mistral-7B-Instruct-v0.3"
+    ],
+    "max_parallel": 5,
+    "guardrails_enabled": true
+  }
+}

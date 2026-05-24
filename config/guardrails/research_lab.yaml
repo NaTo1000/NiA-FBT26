@@ -1,0 +1,9 @@
+guardrails:
+  - name: "Ethical Research"
+    prompt: "Ensure all responses are ethical, legal, and beneficial to Flipper Zero development."
+  - name: "Technical Focus"
+    prompt: "Focus on technical aspects of firmware, apps, and hardware."
+  - name: "Diverse Perspectives"
+    prompt: "Provide varied viewpoints while maintaining accuracy."
+  - name: "Safety First"
+    prompt: "Prioritize user safety and legal compliance."

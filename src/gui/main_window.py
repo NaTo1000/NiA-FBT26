@@ -3,7 +3,7 @@ from PyQt6.QtWidgets import (QMainWindow, QTabWidget, QWidget, QVBoxLayout,
                              QHBoxLayout, QPushButton, QLabel, QStatusBar,
                              QMenuBar, QMenu, QToolBar, QDockWidget, QSplitter)
 from PyQt6.QtCore import Qt, pyqtSignal
-from PyQt6.QtGui import QAction, QIcon
+from PyQt6.QtGui import QAction, QIcon, QKeySequence, QShortcut
 
 class MainWindow(QMainWindow):
     """Main application window with all development tools"""
@@ -35,13 +35,23 @@ class MainWindow(QMainWindow):
         from .arduino_panel import ArduinoPanelWidget
         from .terminal_widget import TerminalWidget
         from .github_search import GitHubSearchWidget
-        
+        from .research_lab_widget import ResearchLabWidget
+
         self.tabs.addTab(FAPBuilderWidget(self.config), "FAP Builder")
         self.tabs.addTab(FirmwareBuilderWidget(self.config), "Firmware Builder")
         self.tabs.addTab(ArduinoPanelWidget(self.config), "Arduino/ESP32")
         self.tabs.addTab(TerminalWidget(self.config), "Terminal")
         self.tabs.addTab(GitHubSearchWidget(self.config), "GitHub Search")
-        
+
+        self.research_lab_widget = ResearchLabWidget(self.config)
+        self.tabs.addTab(self.research_lab_widget, "Research Lab")
+
+        # Ctrl+Shift+R hotkey to open Research Lab tab
+        self.research_lab_shortcut = QShortcut(
+            QKeySequence("Ctrl+Shift+R"), self
+        )
+        self.research_lab_shortcut.activated.connect(self.open_research_lab)
+
         # Create status bar
         self.statusBar().showMessage("Ready")
         
@@ -92,3 +102,11 @@ class MainWindow(QMainWindow):
     
     def show_settings(self):
         pass
+
+    def open_research_lab(self):
+        """Switch to the Research Lab tab (triggered by Ctrl+Shift+R)."""
+        for index in range(self.tabs.count()):
+            if self.tabs.tabText(index) == "Research Lab":
+                self.tabs.setCurrentIndex(index)
+                self.statusBar().showMessage("Research Lab opened")
+                break

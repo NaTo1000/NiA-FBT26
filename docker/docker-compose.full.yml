@@ -1,0 +1,23 @@
+version: "3.9"
+
+services:
+  research_lab:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.research_lab
+    image: nia-fbt26-research-lab:latest
+    container_name: nia_research_lab
+    ports:
+      - "8020:8020"
+    environment:
+      - HUGGINGFACE_API_KEY=${HUGGINGFACE_API_KEY:-}
+      - RESEARCH_LAB_PORT=8020
+    volumes:
+      - ../config:/app/config:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8020/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    restart: unless-stopped
