@@ -1,0 +1,111 @@
+{
+  "name": "NiA-FBT26",
+  "short_name": "NiA-FBT26",
+  "description": "Advanced Flipper Zero Development Suite — AI-Powered Cybersecurity Toolkit",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0a0a0a",
+  "theme_color": "#ff6600",
+  "categories": ["developer tools", "utilities", "security"],
+  "lang": "en",
+  "icons": [
+    {
+      "src": "/icons/icon-72x72.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icons/icon-96x96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icons/icon-128x128.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icons/icon-144x144.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icons/icon-152x152.png",
+      "sizes": "152x152",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icons/icon-384x384.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable any"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshots/desktop.png",
+      "sizes": "1280x800",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "NiA-FBT26 Desktop Interface"
+    },
+    {
+      "src": "/screenshots/mobile.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "NiA-FBT26 Mobile Interface"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "AI Orchestrator",
+      "short_name": "Orchestrate",
+      "description": "Open the AI model orchestration panel",
+      "url": "/orchestrator",
+      "icons": [{ "src": "/icons/shortcut-orchestrator.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Signal Analyzer",
+      "short_name": "Signals",
+      "description": "Analyze RF signals captured by Flipper Zero",
+      "url": "/signals",
+      "icons": [{ "src": "/icons/shortcut-signals.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Firmware Builder",
+      "short_name": "Build",
+      "description": "Build and flash Flipper Zero firmware",
+      "url": "/firmware",
+      "icons": [{ "src": "/icons/shortcut-firmware.png", "sizes": "96x96" }]
+    }
+  ],
+  "protocol_handlers": [
+    {
+      "protocol": "web+nia",
+      "url": "/?protocol=%s"
+    }
+  ],
+  "prefer_related_applications": false,
+  "related_applications": [],
+  "capture_links": "new-client"
+}
