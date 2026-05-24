@@ -1,0 +1,15 @@
+{
+  "firmware_path": "~/flipper-firmware",
+  "sdk_path": "~/flipper-sdk",
+  "arduino_path": "~/Arduino",
+  "editor": {
+    "theme": "monokai",
+    "font_size": 12
+  },
+  "healing": {
+    "hotkey": "Ctrl+Shift+A",
+    "auto_heal_on_startup": true,
+    "healing_timeout": 300,
+    "rebuild_models": true
+  }
+}

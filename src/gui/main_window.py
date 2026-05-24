@@ -5,6 +5,10 @@ from PyQt6.QtWidgets import (QMainWindow, QTabWidget, QWidget, QVBoxLayout,
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QAction, QIcon
 
+from ai.healing_manager import HealingManager
+from core.hotkey_handler import HotkeyHandler
+
+
 class MainWindow(QMainWindow):
     """Main application window with all development tools"""
     
@@ -15,8 +19,26 @@ class MainWindow(QMainWindow):
         
         self.setWindowTitle("NiA FBT26 - Flipper Zero Development Suite")
         self.setGeometry(100, 100, 1400, 900)
+
+        # Set up healing manager and hotkey before building UI so that
+        # the healing widget can connect to the manager's signals.
+        self._healing_manager = HealingManager(
+            config=self.config.config if hasattr(self.config, "config") else {},
+            parent=self,
+        )
+        self._hotkey_handler = HotkeyHandler(
+            parent_window=self,
+            config=self.config.config if hasattr(self.config, "config") else {},
+            parent=self,
+        )
+        self._hotkey_handler.heal_triggered.connect(self._healing_manager.heal)
         
         self.init_ui()
+
+        # Auto-heal on startup if configured
+        cfg = self.config.config if hasattr(self.config, "config") else {}
+        if cfg.get("healing", {}).get("auto_heal_on_startup", False):
+            self._healing_manager.heal()
         
     def init_ui(self):
         # Create menu bar
@@ -35,12 +57,19 @@ class MainWindow(QMainWindow):
         from .arduino_panel import ArduinoPanelWidget
         from .terminal_widget import TerminalWidget
         from .github_search import GitHubSearchWidget
+        from .healing_widget import HealingWidget
         
         self.tabs.addTab(FAPBuilderWidget(self.config), "FAP Builder")
         self.tabs.addTab(FirmwareBuilderWidget(self.config), "Firmware Builder")
         self.tabs.addTab(ArduinoPanelWidget(self.config), "Arduino/ESP32")
         self.tabs.addTab(TerminalWidget(self.config), "Terminal")
         self.tabs.addTab(GitHubSearchWidget(self.config), "GitHub Search")
+        self.tabs.addTab(HealingWidget(self._healing_manager), "AI Orchestration")
+
+        # Connect healing log to status bar
+        self._healing_manager.log_message.connect(
+            lambda msg: self.statusBar().showMessage(msg, 5000)
+        )
         
         # Create status bar
         self.statusBar().showMessage("Ready")
@@ -65,12 +94,17 @@ class MainWindow(QMainWindow):
         # Tools menu
         tools_menu = menubar.addMenu("Tools")
         tools_menu.addAction("Settings", self.show_settings)
+        tools_menu.addSeparator()
+        tools_menu.addAction("Heal All AI Services  (Ctrl+Shift+A)",
+                             self._healing_manager.heal)
         
     def create_toolbar(self):
         toolbar = self.addToolBar("Main")
         toolbar.addAction("Connect", self.connect_device)
         toolbar.addAction("Build", self.build_project)
         toolbar.addAction("Flash", self.flash_firmware)
+        toolbar.addSeparator()
+        toolbar.addAction("⚕ Heal", self._healing_manager.heal)
         
     def new_project(self):
         pass
