@@ -1,0 +1,92 @@
+version: "3.9"
+
+# Launches the Super Orchestrator + 3 Sub-Orchestrators in parallel.
+# Model runners (ports 8001-8010) are managed by docker-compose.full.yml.
+
+services:
+
+  super-orchestrator:
+    build:
+      context: ../..
+      dockerfile: docker/orchestration/Dockerfile
+    ports:
+      - "7000:7000"
+    environment:
+      - HUGGINGFACE_API_KEY=${HUGGINGFACE_API_KEY:-}
+    volumes:
+      - ../../config:/app/config:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  code-sub-orchestrator:
+    build:
+      context: ../..
+      dockerfile: docker/orchestration/Dockerfile
+    command:
+      ["uvicorn", "src.orchestration.code_sub_orch:app",
+       "--host", "0.0.0.0", "--port", "7100"]
+    ports:
+      - "7100:7100"
+    environment:
+      - HUGGINGFACE_API_KEY=${HUGGINGFACE_API_KEY:-}
+    volumes:
+      - ../../config:/app/config:ro
+    depends_on:
+      super-orchestrator:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7100/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  analysis-sub-orchestrator:
+    build:
+      context: ../..
+      dockerfile: docker/orchestration/Dockerfile
+    command:
+      ["uvicorn", "src.orchestration.analysis_sub_orch:app",
+       "--host", "0.0.0.0", "--port", "7200"]
+    ports:
+      - "7200:7200"
+    environment:
+      - HUGGINGFACE_API_KEY=${HUGGINGFACE_API_KEY:-}
+    volumes:
+      - ../../config:/app/config:ro
+    depends_on:
+      super-orchestrator:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7200/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  interface-sub-orchestrator:
+    build:
+      context: ../..
+      dockerfile: docker/orchestration/Dockerfile
+    command:
+      ["uvicorn", "src.orchestration.interface_sub_orch:app",
+       "--host", "0.0.0.0", "--port", "7300"]
+    ports:
+      - "7300:7300"
+    environment:
+      - HUGGINGFACE_API_KEY=${HUGGINGFACE_API_KEY:-}
+    volumes:
+      - ../../config:/app/config:ro
+    depends_on:
+      super-orchestrator:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7300/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped

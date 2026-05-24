@@ -1,0 +1,6 @@
+# Code Generation Guardrails
+# Fill in your rules here.
+# Example:
+# blocked_patterns: []
+# max_output_tokens: 4096
+# temperature_max: 0.9

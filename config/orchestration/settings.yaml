@@ -1,0 +1,95 @@
+orchestration:
+  super_orchestrator:
+    host: "0.0.0.0"
+    port: 7000
+    health_interval: 30
+    max_concurrent_tasks: 10
+
+  sub_orchestrators:
+    code:
+      host: "0.0.0.0"
+      port: 7100
+      managed_ports: [8001, 8002, 8009]
+      task_types: ["code_generation", "code_review", "build_diagnostics"]
+
+    analysis:
+      host: "0.0.0.0"
+      port: 7200
+      managed_ports: [8005, 8006, 8007, 8008, 8010]
+      task_types:
+        ["signal_classifier", "firmware_analysis", "github_ranker", "log_analyzer", "protocol_parser"]
+
+    interface:
+      host: "0.0.0.0"
+      port: 7300
+      managed_ports: [8003, 8004]
+      task_types: ["nl_to_cli", "docs_generator"]
+
+  model_runners:
+    code_generation:
+      port: 8001
+      model: "deepseek-ai/deepseek-coder-6.7b-instruct"
+      local: false
+
+    code_review:
+      port: 8002
+      model: "codellama/CodeLlama-70b-hf"
+      local: false
+
+    nl_to_cli:
+      port: 8003
+      model: "meta-llama/Meta-Llama-3.1-70B-Instruct"
+      local: false
+
+    docs_generator:
+      port: 8004
+      model: "mistralai/Mistral-Large-Instruct-2407"
+      local: false
+
+    signal_classifier:
+      port: 8005
+      model: "local-onnx-model"
+      local: true
+
+    firmware_analysis:
+      port: 8006
+      model: "bigcode/starcoder2-15b"
+      local: false
+
+    github_ranker:
+      port: 8007
+      model: "BAAI/bge-large-en-v1.5"
+      local: false
+
+    log_analyzer:
+      port: 8008
+      model: "microsoft/Phi-3-medium-128k-instruct"
+      local: false
+
+    build_diagnostics:
+      port: 8009
+      model: "deepseek-ai/deepseek-coder-6.7b-instruct"
+      local: false
+
+    protocol_parser:
+      port: 8010
+      model: "meta-llama/Meta-Llama-3.1-8B-Instruct"
+      local: false
+
+  redis:
+    url: "redis://localhost:6379"
+    task_queue_prefix: "nia_task"
+    result_queue_prefix: "nia_result"
+    ttl: 3600
+
+routing_rules:
+  code_generation: "code"
+  code_review: "code"
+  build_diagnostics: "code"
+  signal_classifier: "analysis"
+  firmware_analysis: "analysis"
+  github_ranker: "analysis"
+  log_analyzer: "analysis"
+  protocol_parser: "analysis"
+  nl_to_cli: "interface"
+  docs_generator: "interface"

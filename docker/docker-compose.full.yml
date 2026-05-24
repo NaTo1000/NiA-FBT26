@@ -1,0 +1,235 @@
+version: "3.9"
+
+# Launches ALL 13 services (1 super + 3 sub orchestrators + 10 model runners)
+# in parallel as a single coordinated entity.
+#
+# Usage:
+#   export HUGGINGFACE_API_KEY=hf_...
+#   docker compose -f docker/docker-compose.full.yml up --build
+
+x-model-runner-base: &model-runner-base
+  build:
+    context: ..
+    dockerfile: docker/model_runner/Dockerfile
+  environment:
+    - HUGGINGFACE_API_KEY=${HUGGINGFACE_API_KEY:-}
+  volumes:
+    - ../config:/app/config:ro
+  restart: unless-stopped
+
+services:
+
+  # ── Orchestration Layer ───────────────────────────────────────────────────
+
+  super-orchestrator:
+    build:
+      context: ..
+      dockerfile: docker/orchestration/Dockerfile
+    ports:
+      - "7000:7000"
+    environment:
+      - HUGGINGFACE_API_KEY=${HUGGINGFACE_API_KEY:-}
+    volumes:
+      - ../config:/app/config:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  code-sub-orchestrator:
+    build:
+      context: ..
+      dockerfile: docker/orchestration/Dockerfile
+    command:
+      ["uvicorn", "src.orchestration.code_sub_orch:app",
+       "--host", "0.0.0.0", "--port", "7100"]
+    ports:
+      - "7100:7100"
+    environment:
+      - HUGGINGFACE_API_KEY=${HUGGINGFACE_API_KEY:-}
+    volumes:
+      - ../config:/app/config:ro
+    depends_on:
+      super-orchestrator:
+        condition: service_healthy
+    restart: unless-stopped
+
+  analysis-sub-orchestrator:
+    build:
+      context: ..
+      dockerfile: docker/orchestration/Dockerfile
+    command:
+      ["uvicorn", "src.orchestration.analysis_sub_orch:app",
+       "--host", "0.0.0.0", "--port", "7200"]
+    ports:
+      - "7200:7200"
+    environment:
+      - HUGGINGFACE_API_KEY=${HUGGINGFACE_API_KEY:-}
+    volumes:
+      - ../config:/app/config:ro
+    depends_on:
+      super-orchestrator:
+        condition: service_healthy
+    restart: unless-stopped
+
+  interface-sub-orchestrator:
+    build:
+      context: ..
+      dockerfile: docker/orchestration/Dockerfile
+    command:
+      ["uvicorn", "src.orchestration.interface_sub_orch:app",
+       "--host", "0.0.0.0", "--port", "7300"]
+    ports:
+      - "7300:7300"
+    environment:
+      - HUGGINGFACE_API_KEY=${HUGGINGFACE_API_KEY:-}
+    volumes:
+      - ../config:/app/config:ro
+    depends_on:
+      super-orchestrator:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ── Model Runners (Layer 3) ───────────────────────────────────────────────
+
+  code-generation:
+    <<: *model-runner-base
+    ports:
+      - "8001:8001"
+    environment:
+      - HUGGINGFACE_API_KEY=${HUGGINGFACE_API_KEY:-}
+      - MODEL_ROLE=code_generation
+      - MODEL_PORT=8001
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  code-review:
+    <<: *model-runner-base
+    ports:
+      - "8002:8002"
+    environment:
+      - HUGGINGFACE_API_KEY=${HUGGINGFACE_API_KEY:-}
+      - MODEL_ROLE=code_review
+      - MODEL_PORT=8002
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  nl-to-cli:
+    <<: *model-runner-base
+    ports:
+      - "8003:8003"
+    environment:
+      - HUGGINGFACE_API_KEY=${HUGGINGFACE_API_KEY:-}
+      - MODEL_ROLE=nl_to_cli
+      - MODEL_PORT=8003
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8003/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  docs-generator:
+    <<: *model-runner-base
+    ports:
+      - "8004:8004"
+    environment:
+      - HUGGINGFACE_API_KEY=${HUGGINGFACE_API_KEY:-}
+      - MODEL_ROLE=docs_generator
+      - MODEL_PORT=8004
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8004/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  signal-classifier:
+    <<: *model-runner-base
+    ports:
+      - "8005:8005"
+    environment:
+      - HUGGINGFACE_API_KEY=${HUGGINGFACE_API_KEY:-}
+      - MODEL_ROLE=signal_classifier
+      - MODEL_PORT=8005
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8005/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  firmware-analysis:
+    <<: *model-runner-base
+    ports:
+      - "8006:8006"
+    environment:
+      - HUGGINGFACE_API_KEY=${HUGGINGFACE_API_KEY:-}
+      - MODEL_ROLE=firmware_analysis
+      - MODEL_PORT=8006
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8006/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  github-ranker:
+    <<: *model-runner-base
+    ports:
+      - "8007:8007"
+    environment:
+      - HUGGINGFACE_API_KEY=${HUGGINGFACE_API_KEY:-}
+      - MODEL_ROLE=github_ranker
+      - MODEL_PORT=8007
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8007/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  log-analyzer:
+    <<: *model-runner-base
+    ports:
+      - "8008:8008"
+    environment:
+      - HUGGINGFACE_API_KEY=${HUGGINGFACE_API_KEY:-}
+      - MODEL_ROLE=log_analyzer
+      - MODEL_PORT=8008
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8008/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  build-diagnostics:
+    <<: *model-runner-base
+    ports:
+      - "8009:8009"
+    environment:
+      - HUGGINGFACE_API_KEY=${HUGGINGFACE_API_KEY:-}
+      - MODEL_ROLE=build_diagnostics
+      - MODEL_PORT=8009
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8009/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  protocol-parser:
+    <<: *model-runner-base
+    ports:
+      - "8010:8010"
+    environment:
+      - HUGGINGFACE_API_KEY=${HUGGINGFACE_API_KEY:-}
+      - MODEL_ROLE=protocol_parser
+      - MODEL_PORT=8010
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8010/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
