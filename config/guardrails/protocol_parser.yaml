@@ -1,0 +1,16 @@
+# Protocol Parser — Guardrails Configuration
+# -------------------------------------------
+# Guardrails are intentionally empty/disabled.
+# The developer is responsible for defining and enforcing any content
+# policies appropriate to their deployment environment.
+#
+# To enable guardrails, add rules under the 'rules' key, for example:
+#
+# rules:
+#   - name: block_pii
+#     type: regex
+#     pattern: '\b\d{3}-\d{2}-\d{4}\b'
+#     action: redact
+
+enabled: false
+rules: []

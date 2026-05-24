@@ -1,0 +1,21 @@
+{
+  "firmware_path": "~/flipper-firmware",
+  "sdk_path": "~/flipper-sdk",
+  "arduino_path": "~/Arduino",
+  "editor": {
+    "theme": "monokai",
+    "font_size": 12
+  },
+  "ai_integration": {
+    "huggingface_api_key": "",
+    "model_endpoint": "",
+    "local_model_path": ""
+  },
+  "protocol_parser": {
+    "port": 8010,
+    "model": "meta-llama/Meta-Llama-3.1-8B-Instruct",
+    "temperature": 0.2,
+    "max_new_tokens": 1024,
+    "local_endpoint": ""
+  }
+}
