@@ -4,6 +4,7 @@
 #include "gui/arduino_panel_widget.h"
 #include "gui/terminal_widget.h"
 #include "gui/github_search_widget.h"
+#include "gui/werewolf_widget.h"
 #include "core/config_manager.h"
 #include "core/device_manager.h"
 
@@ -21,6 +22,7 @@ MainWindow::MainWindow(ConfigManager* config, DeviceManager* deviceManager, QWid
     , m_arduinoPanel(nullptr)
     , m_terminal(nullptr)
     , m_githubSearch(nullptr)
+    , m_werewolf(nullptr)
 {
     setWindowTitle("NiA FBT26 - Flipper Zero Development Suite");
     setGeometry(100, 100, 1400, 900);
@@ -44,6 +46,7 @@ void MainWindow::initUI()
     m_arduinoPanel = new ArduinoPanelWidget(m_config, this);
     m_terminal = new TerminalWidget(m_config, this);
     m_githubSearch = new GitHubSearchWidget(m_config, this);
+    m_werewolf = new WerewolfWidget(this);
     
     // Add tabs
     m_tabs->addTab(m_fapBuilder, "FAP Builder");
@@ -51,6 +54,7 @@ void MainWindow::initUI()
     m_tabs->addTab(m_arduinoPanel, "Arduino/ESP32");
     m_tabs->addTab(m_terminal, "Terminal");
     m_tabs->addTab(m_githubSearch, "GitHub Search");
+    m_tabs->addTab(m_werewolf, "Defensive Simulation");
     
     // Create status bar
     statusBar()->showMessage("Ready");
