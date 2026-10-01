@@ -14,6 +14,7 @@ class FirmwareBuilderWidget;
 class ArduinoPanelWidget;
 class TerminalWidget;
 class GitHubSearchWidget;
+class WerewolfWidget;
 
 /**
  * @brief Main application window with all development tools
@@ -52,6 +53,7 @@ private:
     ArduinoPanelWidget* m_arduinoPanel;
     TerminalWidget* m_terminal;
     GitHubSearchWidget* m_githubSearch;
+    WerewolfWidget* m_werewolf;
 };
 
 #endif // MAIN_WINDOW_H

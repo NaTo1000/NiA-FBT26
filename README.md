@@ -12,6 +12,15 @@ NiA FBT26 is a comprehensive development environment for Flipper Zero that combi
 
 ## ✨ Features
 
+### 🛡️ Native defensive simulation
+- **Qt6/C++17 only** - No Python dependency or Python process invocation
+- **Evidence before defence** - Proximity stays dormant; only a separately verifier-issued simulation alert activates guard mode
+- **Local dry-run containment** - Records target-bound, single-use `block_and_isolate` requests without network, serial, firmware, remote, retaliatory, or OS policy action
+- **Strict and bounded** - Schema-v1 validation, replay protection, state caps, atomic JSON reports, native CLI, and a text-accessible **Defensive Simulation** tab
+
+See [the Werewolf integration guide](docs/werewolf-integration.md) for the
+contract, CLI, schema, build instructions, and explicit production limitations.
+
 ### 📱 Device Management
 - **qFlipper-style interface** - Familiar UI for device interaction
 - **Firmware flashing** - DFU, .tgz, and .zip support

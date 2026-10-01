@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "current_time": 1000,
+  "devices": [
+    {
+      "device_id": "target-rotating-id",
+      "device_class": "flipper",
+      "signal_dbm": -43,
+      "opted_in": true,
+      "game_beacon_valid": true,
+      "battle_power": 30,
+      "connected_first": false,
+      "beacon_id": "beacon-target-1",
+      "issued_at": 990,
+      "expires_at": 1010
+    },
+    {
+      "device_id": "source-rotating-id",
+      "device_class": "pineapple",
+      "signal_dbm": -48,
+      "opted_in": true,
+      "game_beacon_valid": true,
+      "battle_power": 0,
+      "connected_first": false,
+      "beacon_id": "beacon-source-1",
+      "issued_at": 990,
+      "expires_at": 1010
+    }
+  ],
+  "attack_alert": {
+    "alert_id": "simulation-alert-1",
+    "detector": "test-simulation-verifier",
+    "target_device_id": "target-rotating-id",
+    "reason": "simulated unauthorized protected-route access",
+    "severity": 4,
+    "simulation_trusted": true
+  },
+  "shield_charge": 25,
+  "attacker_device_id": "target-rotating-id"
+}
