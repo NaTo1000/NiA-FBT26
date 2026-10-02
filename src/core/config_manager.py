@@ -1,17 +1,23 @@
 import json
 from pathlib import Path
 
+
 class ConfigManager:
     def __init__(self):
         self.config_path = Path("config/settings.json")
         self.config = self.load_config()
-    
+
     def load_config(self):
         if self.config_path.exists():
-            with open(self.config_path) as f:
-                return json.load(f)
+            try:
+                with open(self.config_path) as f:
+                    return json.load(f)
+            except json.JSONDecodeError as exc:
+                raise ValueError(
+                    f"Invalid configuration file '{self.config_path}': {exc}"
+                ) from exc
         return self.default_config()
-    
+
     def default_config(self):
         return {
             "firmware_path": "~/flipper-firmware",
@@ -22,7 +28,7 @@ class ConfigManager:
                 "font_size": 12
             }
         }
-    
+
     def save_config(self):
         self.config_path.parent.mkdir(parents=True, exist_ok=True)
         with open(self.config_path, 'w') as f:
